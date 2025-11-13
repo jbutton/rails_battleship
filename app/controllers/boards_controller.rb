@@ -13,11 +13,23 @@ class BoardsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         if result[:success]
-          render turbo_stream: turbo_stream.replace(
-            "game-container",
-            partial: "games/waiting_for_opponent",
-            locals: { game: @board.game, player: current_player }
-          )
+          # Reload game to get latest state
+          game = @board.game.reload
+
+          # If game has started, show play screen. Otherwise show waiting screen
+          if game.in_progress?
+            render turbo_stream: turbo_stream.replace(
+              "game-container",
+              partial: "games/play",
+              locals: { game: game, player: current_player }
+            )
+          else
+            render turbo_stream: turbo_stream.replace(
+              "game-container",
+              partial: "games/waiting_for_opponent",
+              locals: { game: game, player: current_player }
+            )
+          end
         else
           render turbo_stream: turbo_stream.replace(
             "flash-messages",
