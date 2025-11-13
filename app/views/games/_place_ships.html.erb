@@ -1,0 +1,59 @@
+<div class="place-ships-container">
+  <h2>Place Your Ships</h2>
+
+  <% board = game.board_for(player) %>
+  <% if board.ready? %>
+    <%= render "games/waiting_for_opponent", game: game, player: player %>
+  <% else %>
+    <% deadline = game.ships_placement_deadline %>
+    <% if deadline %>
+      <div class="timer" data-controller="timer" data-timer-deadline-value="<%= deadline.iso8601 %>">
+        <p>Time remaining: <span data-timer-target="display">--:--</span></p>
+      </div>
+    <% end %>
+
+    <div class="ship-placement" data-controller="ship-placement" data-ship-placement-board-id-value="<%= board.id %>">
+      <div class="instructions">
+        <h3>Ships to Place:</h3>
+        <ul class="ships-list">
+          <% Board::SHIPS.each do |ship_type, length| %>
+            <li data-ship-placement-target="shipInfo" data-type="<%= ship_type %>" data-length="<%= length %>">
+              <strong><%= ship_type.to_s.titleize %></strong>: <%= length %> cells
+              <span class="status" data-ship-placement-target="shipStatus">⬜</span>
+            </li>
+          <% end %>
+        </ul>
+        <p class="help-text">Click on the grid to place ships horizontally. Click ship in list to rotate.</p>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid" data-ship-placement-target="grid">
+          <% Board::GRID_SIZE.times do |y| %>
+            <% Board::GRID_SIZE.times do |x| %>
+              <div class="cell"
+                   data-x="<%= x %>"
+                   data-y="<%= y %>"
+                   data-action="click->ship-placement#cellClick mouseenter->ship-placement#cellHover">
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button"
+                class="btn btn-primary"
+                data-action="click->ship-placement#submitPlacement"
+                data-ship-placement-target="submitButton"
+                disabled>
+          Confirm Placement
+        </button>
+        <button type="button"
+                class="btn btn-secondary"
+                data-action="click->ship-placement#reset">
+          Reset
+        </button>
+      </div>
+    </div>
+  <% end %>
+</div>

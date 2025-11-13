@@ -1,0 +1,29 @@
+<div class="container">
+  <div class="lobby">
+    <h2>Game Lobby</h2>
+
+    <% if @current_game %>
+      <div class="current-game">
+        <h3>Current Game Status: <%= @current_game.state.humanize %></h3>
+        <%= link_to "Go to Game", game_path(@current_game), class: "btn btn-primary" %>
+      </div>
+    <% else %>
+      <div class="join-game">
+        <h3>Ready to Play?</h3>
+        <p>Click below to find an opponent and start a new game!</p>
+        <%= button_to "Find Opponent", join_game_path, method: :post, class: "btn btn-success btn-lg" %>
+      </div>
+    <% end %>
+
+    <div class="game-info">
+      <h3>How to Play</h3>
+      <ul>
+        <li>Click "Find Opponent" to join or create a game</li>
+        <li>You'll have <%= GamePlay::MatchmakingService::PLACEMENT_TIME_LIMIT / 60 %> minutes to place your ships</li>
+        <li>Ships will be auto-placed if time runs out</li>
+        <li>Take turns firing at your opponent's grid</li>
+        <li>First to sink all enemy ships wins!</li>
+      </ul>
+    </div>
+  </div>
+</div>

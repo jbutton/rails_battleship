@@ -1,0 +1,34 @@
+<div class="game-play">
+  <div class="game-header">
+    <% opponent = game.opponent_of(player) %>
+    <h2>Battle in Progress!</h2>
+    <p>Playing against: <strong><%= opponent&.name || "Unknown" %></strong></p>
+
+    <% if game.my_turn?(player) %>
+      <p class="turn-indicator your-turn">🎯 Your Turn!</p>
+    <% else %>
+      <p class="turn-indicator opponent-turn">⏳ Opponent's Turn...</p>
+    <% end %>
+  </div>
+
+  <div class="boards-container">
+    <div class="board-section">
+      <h3>Your Fleet</h3>
+      <%= render "boards/board", board: game.board_for(player), own_board: true, game: game, player: player %>
+    </div>
+
+    <div class="board-section">
+      <h3>Enemy Waters</h3>
+      <%= render "boards/board", board: game.board_for(opponent), own_board: false, game: game, player: player %>
+    </div>
+  </div>
+
+  <div class="shots-log-container">
+    <h3>Battle Log</h3>
+    <div id="shots-log" class="shots-log">
+      <% game.shots.order(created_at: :desc).limit(10).each do |shot| %>
+        <%= render "shots/shot", shot: shot %>
+      <% end %>
+    </div>
+  </div>
+</div>

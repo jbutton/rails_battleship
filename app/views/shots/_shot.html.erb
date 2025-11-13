@@ -1,0 +1,16 @@
+<div class="shot-entry <%= shot.result %>">
+  <span class="shooter"><%= shot.shooter.name %></span>
+  <span class="action">fired at</span>
+  <span class="coordinates"><%= "#{('A'.ord + shot.y).chr}#{shot.x + 1}" %></span>
+  <span class="result">
+    <% case shot.result %>
+    <% when "hit" %>
+      💥 <strong>HIT!</strong>
+    <% when "sink" %>
+      🚢💥 <strong>SUNK!</strong>
+    <% when "miss" %>
+      💧 Miss
+    <% end %>
+  </span>
+  <span class="time"><%= time_ago_in_words(shot.created_at) %> ago</span>
+</div>
