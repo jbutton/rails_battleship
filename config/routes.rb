@@ -8,7 +8,6 @@ Rails.application.routes.draw do
   # Game routes
   resources :games, only: [ :index, :show ] do
     member do
-      post :join
       post :fire
     end
     resources :shots, only: [ :create ]
