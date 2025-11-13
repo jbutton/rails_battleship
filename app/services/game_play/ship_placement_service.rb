@@ -60,9 +60,19 @@ module GamePlay
     end
 
     def broadcast_game_started
+      # Broadcast to both players on both their channels
       [ game.player1, game.player2 ].each do |player|
+        # Broadcast to player channel
         Turbo::StreamsChannel.broadcast_replace_to(
           "player_#{player.id}",
+          target: "game-container",
+          partial: "games/play",
+          locals: { game: game, player: player }
+        )
+
+        # Also broadcast to player_game channel for reliability
+        Turbo::StreamsChannel.broadcast_replace_to(
+          "player_#{player.id}_game_#{game.id}",
           target: "game-container",
           partial: "games/play",
           locals: { game: game, player: player }

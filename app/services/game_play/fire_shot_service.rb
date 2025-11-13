@@ -79,8 +79,8 @@ module GamePlay
       [ game.player1, game.player2 ].each do |player|
         Turbo::StreamsChannel.broadcast_replace_to(
           "player_#{player.id}_game_#{game.id}",
-          target: "game-board",
-          partial: "games/board",
+          target: "game-container",
+          partial: "games/play",
           locals: { game: game, player: player }
         )
       end
