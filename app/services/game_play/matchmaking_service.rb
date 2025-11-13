@@ -51,6 +51,9 @@ module GamePlay
         ships_placement_deadline: deadline
       )
 
+      # Update player1's status to in_game
+      game.player1.update!(status: :in_game)
+
       # Create boards for both players
       game.boards.find_or_create_by!(player: game.player1)
       game.boards.find_or_create_by!(player: game.player2)
