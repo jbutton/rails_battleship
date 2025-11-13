@@ -1,0 +1,60 @@
+<%
+  grid_data = own_board ? board.grid : board.to_opponent_view
+  can_fire = !own_board && game.in_progress? && game.my_turn?(player)
+%>
+
+<div class="board <%= own_board ? 'own-board' : 'enemy-board' %>"
+     data-controller="<%= can_fire ? 'battleship-board' : '' %>"
+     data-battleship-board-game-id-value="<%= game.id %>"
+     data-battleship-board-can-fire-value="<%= can_fire %>">
+
+  <div class="grid">
+    <% Board::GRID_SIZE.times do |y| %>
+      <% Board::GRID_SIZE.times do |x| %>
+        <%
+          cell = grid_data[y][x]
+          classes = [ "cell" ]
+
+          if cell.is_a?(Hash)
+            if cell["hit"]
+              classes << "hit"
+            elsif cell["shot"]
+              classes << "miss"
+            elsif own_board && cell["type"]
+              classes << "ship"
+              classes << cell["type"]
+              classes << "sunk" if board.ships.any? { |s| s["type"] == cell["type"] && s["sunk"] }
+            end
+          end
+        %>
+
+        <div class="<%= classes.join(' ') %>"
+             data-x="<%= x %>"
+             data-y="<%= y %>"
+             <%= "data-action='click->battleship-board#fire'" if can_fire && !cell.is_a?(Hash) || (cell.is_a?(Hash) && !cell["shot"] && !cell["hit"]) %>
+             title="<%= "#{('A'.ord + y).chr}#{x + 1}" %>">
+          <% if cell.is_a?(Hash) %>
+            <% if cell["hit"] %>
+              <span class="marker">💥</span>
+            <% elsif cell["shot"] %>
+              <span class="marker">⚪</span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="coordinates">
+    <div class="row-labels">
+      <% Board::GRID_SIZE.times do |i| %>
+        <div class="label"><%= ('A'.ord + i).chr %></div>
+      <% end %>
+    </div>
+    <div class="col-labels">
+      <% Board::GRID_SIZE.times do |i| %>
+        <div class="label"><%= i + 1 %></div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+<div class="container">
+  <div class="player-form">
+    <h2>Welcome to Battleship!</h2>
+    <p>Enter your name to start playing</p>
+
+    <%= form_with model: @player, local: true do |f| %>
+      <% if @player.errors.any? %>
+        <div class="error-messages">
+          <h3><%= pluralize(@player.errors.count, "error") %> prohibited this player from being saved:</h3>
+          <ul>
+            <% @player.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= f.label :name, "Your Name" %>
+        <%= f.text_field :name, required: true, placeholder: "Enter your name", autofocus: true, class: "form-control" %>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Start Playing", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

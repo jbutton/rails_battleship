@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  game_id: 1
+  player_id: 1
+  grid_json: MyText
+  ships_json: MyText
+  ready: false
+
+two:
+  game_id: 1
+  player_id: 1
+  grid_json: MyText
+  ships_json: MyText
+  ready: false

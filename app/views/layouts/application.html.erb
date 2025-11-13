@@ -24,6 +24,19 @@
   </head>
 
   <body>
-    <%= yield %>
+    <header class="main-header">
+      <h1>⚓ Rails Battleship</h1>
+      <% if current_player %>
+        <p>Welcome, <%= current_player.name %>!</p>
+      <% end %>
+    </header>
+
+    <div id="flash-messages">
+      <%= render "shared/flash" if flash.any? %>
+    </div>
+
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

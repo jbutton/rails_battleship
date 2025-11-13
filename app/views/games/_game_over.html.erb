@@ -1,0 +1,23 @@
+<div class="game-over">
+  <% if game.winner_id == player.id %>
+    <h2 class="victory">🎉 Victory!</h2>
+    <p>Congratulations! You sunk all enemy ships!</p>
+  <% else %>
+    <h2 class="defeat">💥 Defeat</h2>
+    <p>Your fleet has been destroyed!</p>
+  <% end %>
+
+  <div class="game-stats">
+    <h3>Game Stats</h3>
+    <% opponent = game.opponent_of(player) %>
+    <p>Opponent: <%= opponent&.name %></p>
+    <p>Total Shots Fired: <%= game.shots.where(shooter: player).count %></p>
+    <p>Hits: <%= game.shots.where(shooter: player).hits.count %></p>
+    <p>Accuracy: <%= game.shots.where(shooter: player).count > 0 ? (game.shots.where(shooter: player).hits.count.to_f / game.shots.where(shooter: player).count * 100).round(1) : 0 %>%</p>
+  </div>
+
+  <div class="actions">
+    <%= link_to "Back to Lobby", games_path, class: "btn btn-primary" %>
+    <%= button_to "Play Again", join_game_path, method: :post, class: "btn btn-success" %>
+  </div>
+</div>

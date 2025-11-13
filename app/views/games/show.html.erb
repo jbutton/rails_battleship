@@ -1,0 +1,17 @@
+<div class="container">
+  <div id="game-container">
+    <% if @game.waiting_for_players? %>
+      <%= render "games/waiting_for_match", game: @game, player: @player %>
+    <% elsif @game.placing_ships? %>
+      <%= render "games/place_ships", game: @game, player: @player %>
+    <% elsif @game.in_progress? %>
+      <%= render "games/play", game: @game, player: @player %>
+    <% elsif @game.finished? %>
+      <%= render "games/game_over", game: @game, player: @player %>
+    <% end %>
+  </div>
+</div>
+
+<%= turbo_stream_from "player_#{@player.id}" %>
+<%= turbo_stream_from "player_#{@player.id}_game_#{@game.id}" %>
+<%= turbo_stream_from "game_#{@game.id}_log" %>
