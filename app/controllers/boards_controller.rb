@@ -31,11 +31,31 @@ class BoardsController < ApplicationController
             )
           end
         else
-          render turbo_stream: turbo_stream.replace(
-            "flash-messages",
-            partial: "shared/flash",
-            locals: { alert: result[:error] }
-          )
+          # Even if placement failed, check if the game has started (e.g., due to auto-placement)
+          game = @board.game.reload
+
+          if game.in_progress?
+            # Game has started, show play screen instead of error
+            render turbo_stream: [
+              turbo_stream.replace(
+                "game-container",
+                partial: "games/play",
+                locals: { game: game, player: current_player }
+              ),
+              turbo_stream.replace(
+                "flash-messages",
+                partial: "shared/flash",
+                locals: { notice: "Ships were placed automatically. Game has started!" }
+              )
+            ]
+          else
+            # Show error message
+            render turbo_stream: turbo_stream.replace(
+              "flash-messages",
+              partial: "shared/flash",
+              locals: { alert: result[:error] }
+            )
+          end
         end
       end
       format.json do
