@@ -1,6 +1,6 @@
 module GamePlay
   class MatchmakingService
-    PLACEMENT_TIME_LIMIT = 120.seconds
+    PLACEMENT_TIME_LIMIT = 10.minutes
 
     def initialize(player)
       @player = player

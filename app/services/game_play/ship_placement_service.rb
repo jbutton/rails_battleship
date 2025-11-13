@@ -26,9 +26,19 @@ module GamePlay
     attr_reader :board, :ships_data, :game
 
     def validate_game_state!
-      raise InvalidPlacementError, "Game must be in placing_ships state" unless game.placing_ships?
-      raise InvalidPlacementError, "Board already has ships placed" if board.ready?
-      raise InvalidPlacementError, "Placement deadline has passed" if game.ships_placement_deadline && Time.current > game.ships_placement_deadline
+      unless game.placing_ships?
+        if game.in_progress?
+          raise InvalidPlacementError, "The game has already started. Ships have been placed automatically."
+        else
+          raise InvalidPlacementError, "Cannot place ships at this time. Game state: #{game.state}"
+        end
+      end
+
+      raise InvalidPlacementError, "Your ships have already been placed" if board.ready?
+
+      if game.ships_placement_deadline && Time.current > game.ships_placement_deadline
+        raise InvalidPlacementError, "Placement time has expired. Ships will be placed automatically."
+      end
     end
 
     def place_ships
