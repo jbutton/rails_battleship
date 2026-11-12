@@ -70,15 +70,14 @@ module GamePlay
       # Switch turn if game is still in progress
       game.switch_turn! if game.in_progress?
 
-      # Broadcast updates
-      broadcast_shot_result
+      broadcast_shot_result unless game.finished?
     end
 
+    # Re-render each player's own view of the game (boards, turn indicator, battle log).
     def broadcast_shot_result
-      # Broadcast to both players
       [ game.player1, game.player2 ].each do |player|
         Turbo::StreamsChannel.broadcast_replace_to(
-          "player_#{player.id}_game_#{game.id}",
+          "player_#{player.id}",
           target: "game-container",
           partial: "games/play",
           locals: { game: game, player: player }

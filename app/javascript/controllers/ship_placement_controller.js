@@ -1,16 +1,33 @@
 import { Controller } from "@hotwired/stimulus"
+import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
-  static targets = ["grid", "shipInfo", "shipStatus", "submitButton"]
+  static targets = ["grid", "shipInfo", "shipStatus", "submitButton", "orientationLabel"]
   static values = { boardId: Number }
 
   connect() {
     this.placedShips = []
     this.currentShipIndex = 0
-    this.currentOrientation = "horizontal" // or "vertical"
+    this.currentOrientation = "horizontal"
     this.gridSize = 10
     this.ships = this.getShipsConfig()
     this.updateCurrentShip()
+    this.handleKeydown = (event) => {
+      if (event.key === "r" || event.key === "R") this.rotate()
+    }
+    document.addEventListener("keydown", this.handleKeydown)
+  }
+
+  disconnect() {
+    document.removeEventListener("keydown", this.handleKeydown)
+  }
+
+  rotate() {
+    this.currentOrientation = this.currentOrientation === "horizontal" ? "vertical" : "horizontal"
+    if (this.hasOrientationLabelTarget) {
+      this.orientationLabelTarget.textContent = this.currentOrientation === "horizontal" ? "Horizontal" : "Vertical"
+    }
+    if (this.lastHoveredCell) this.cellHover({ currentTarget: this.lastHoveredCell })
   }
 
   getShipsConfig() {
@@ -42,6 +59,7 @@ export default class extends Controller {
     if (this.currentShipIndex >= this.ships.length) return
 
     const cell = event.currentTarget
+    this.lastHoveredCell = cell
     const x = parseInt(cell.dataset.x)
     const y = parseInt(cell.dataset.y)
     const ship = this.ships[this.currentShipIndex]
@@ -111,6 +129,9 @@ export default class extends Controller {
     this.currentShipIndex++
     this.updateCurrentShip()
 
+    // Refresh the hover preview for the next ship
+    this.gridTarget.querySelectorAll('.cell').forEach(c => c.classList.remove('hover-valid', 'hover-invalid'))
+
     // Check if all ships placed
     if (this.currentShipIndex >= this.ships.length) {
       this.submitButtonTarget.disabled = false
@@ -151,20 +172,28 @@ export default class extends Controller {
       return
     }
 
-    const response = await fetch(`/boards/${this.boardIdValue}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-      },
-      body: JSON.stringify({
-        ships_data: JSON.stringify(this.placedShips)
-      })
-    })
+    this.submitButtonTarget.disabled = true
 
-    if (!response.ok) {
-      const error = await response.json()
-      alert(`Error: ${error.error || 'Failed to place ships'}`)
+    try {
+      const response = await fetch(`/boards/${this.boardIdValue}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/vnd.turbo-stream.html',
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          ships_data: JSON.stringify(this.placedShips)
+        })
+      })
+
+      // The server answers with a Turbo Stream: the next screen, or a flash message on error
+      Turbo.renderStreamMessage(await response.text())
+    } catch (error) {
+      console.error('Error placing ships:', error)
+      alert('Failed to place ships. Please try again.')
+    } finally {
+      if (this.element.isConnected) this.submitButtonTarget.disabled = false
     }
   }
 }
