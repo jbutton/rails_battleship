@@ -20,7 +20,7 @@ A real-time, two-player Battleship game built with Rails 8 and Hotwire. Two peop
 - **Timed fallback with Active Job.** `AutoPlaceShipsJob` is scheduled for the placement deadline and starts the game if both boards end up ready.
 - **Placement validation in two places.** A Stimulus controller previews valid and invalid positions on hover, and the server re-checks length, bounds, overlap, and straight-line contiguity before saving.
 - **Access checks.** Only the two players in a game can view it or fire in it, and only a board's owner can place ships on it.
-- **Rails 8 defaults.** SQLite, Solid Queue, Solid Cable, Solid Cache, Propshaft, importmap, and a Kamal deploy config. No Node, Redis, or Postgres needed.
+- **Rails 8 defaults.** SQLite, Solid Queue, Solid Cable, Solid Cache, Propshaft, importmap, and a production Dockerfile. No Node, Redis, or Postgres needed.
 
 ## Tech stack
 
@@ -32,7 +32,7 @@ A real-time, two-player Battleship game built with Rails 8 and Hotwire. Two peop
 | Realtime   | Action Cable (async in dev, Solid Cable in prod)   |
 | Jobs       | Active Job (Solid Queue in prod)                   |
 | Database   | SQLite                                             |
-| Deploy     | Docker + Kamal                                     |
+| Deploy     | Docker                                             |
 | CI         | GitHub Actions: Minitest, RuboCop, Brakeman, bundler-audit, importmap audit |
 
 ## Domain model
@@ -88,7 +88,20 @@ test/
   models/ services/ jobs/ controllers/
 ```
 
+## Running with Docker
+
+The `Dockerfile` builds a production image (Thruster + Puma, SQLite on a volume):
+
+```bash
+docker build -t rails_battleship .
+docker run -d -p 80:80 -e RAILS_MASTER_KEY=$(cat config/master.key) -v battleship_storage:/rails/storage rails_battleship
+```
+
 ## Known limitations
 
 - Players are session-based, so closing the browser loses your identity.
 - There are no browser-level system tests yet; gameplay is covered by model, service and request tests.
+
+## License
+
+[MIT](LICENSE)
