@@ -6,10 +6,6 @@ export default class extends Controller {
     canFire: Boolean
   }
 
-  connect() {
-    console.log("Battleship board connected", this.gameIdValue, this.canFireValue)
-  }
-
   async fire(event) {
     if (!this.canFireValue) {
       return

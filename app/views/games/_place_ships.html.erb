@@ -23,7 +23,10 @@
             </li>
           <% end %>
         </ul>
-        <p class="help-text">Click on the grid to place ships horizontally. Click ship in list to rotate.</p>
+        <p class="help-text">Click the grid to place each ship. Press <kbd>R</kbd> or use the button below to rotate.</p>
+        <button type="button" class="btn btn-secondary" data-action="click->ship-placement#rotate">
+          Rotate: <span data-ship-placement-target="orientationLabel">Horizontal</span>
+        </button>
       </div>
 
       <div class="grid-container">

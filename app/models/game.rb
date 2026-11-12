@@ -70,7 +70,12 @@ class Game < ApplicationRecord
   end
 
   def broadcast_game_over
-    broadcast_replace_to "game_#{id}", partial: "games/game_over", locals: { game: self }
+    [ player1, player2 ].each do |player|
+      broadcast_replace_to "player_#{player.id}",
+                           target: "game-container",
+                           partial: "games/game_over",
+                           locals: { game: self, player: player }
+    end
   end
 
   private

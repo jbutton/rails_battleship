@@ -10,7 +10,7 @@ module GamePlay
       ActiveRecord::Base.transaction do
         game = find_or_create_game
 
-        if game.player2.present?
+        if game.waiting_for_players? && game.player2.present?
           # Game is full, start ship placement phase
           start_ship_placement_phase(game)
         end
@@ -24,8 +24,11 @@ module GamePlay
     attr_reader :player
 
     def find_or_create_game
-      # Try to find a waiting game
-      waiting_game = Game.waiting.lock.first
+      # Clicking "Find Opponent" twice should not open a second game
+      current = player.current_game
+      return current if current && !current.finished?
+
+      waiting_game = Game.waiting.where.not(player1: player).lock.first
 
       if waiting_game
         # Join as player 2

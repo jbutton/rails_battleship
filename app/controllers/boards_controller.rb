@@ -3,59 +3,23 @@ class BoardsController < ApplicationController
   before_action :set_board
 
   def update
-    ships_data = JSON.parse(params[:ships_data])
-
     result = GamePlay::ShipPlacementService.new(
       board: @board,
-      ships_data: ships_data
+      ships_data: JSON.parse(params.require(:ships_data))
     ).call
+    game = @board.game.reload
 
     respond_to do |format|
       format.turbo_stream do
-        if result[:success]
-          # Reload game to get latest state
-          game = @board.game.reload
-
-          # If game has started, show play screen. Otherwise show waiting screen
-          if game.in_progress?
-            render turbo_stream: turbo_stream.replace(
-              "game-container",
-              partial: "games/play",
-              locals: { game: game, player: current_player }
-            )
-          else
-            render turbo_stream: turbo_stream.replace(
-              "game-container",
-              partial: "games/waiting_for_opponent",
-              locals: { game: game, player: current_player }
-            )
+        if result[:success] || game.in_progress?
+          streams = [ turbo_stream.replace("game-container", partial: screen_for(game), locals: { game: game, player: current_player }) ]
+          unless result[:success]
+            streams << turbo_stream.update("flash-messages", partial: "shared/flash",
+                                            locals: { notice: "Ships were placed automatically. Game has started!" })
           end
+          render turbo_stream: streams
         else
-          # Even if placement failed, check if the game has started (e.g., due to auto-placement)
-          game = @board.game.reload
-
-          if game.in_progress?
-            # Game has started, show play screen instead of error
-            render turbo_stream: [
-              turbo_stream.replace(
-                "game-container",
-                partial: "games/play",
-                locals: { game: game, player: current_player }
-              ),
-              turbo_stream.replace(
-                "flash-messages",
-                partial: "shared/flash",
-                locals: { notice: "Ships were placed automatically. Game has started!" }
-              )
-            ]
-          else
-            # Show error message
-            render turbo_stream: turbo_stream.replace(
-              "flash-messages",
-              partial: "shared/flash",
-              locals: { alert: result[:error] }
-            )
-          end
+          render turbo_stream: turbo_stream.update("flash-messages", partial: "shared/flash", locals: { alert: result[:error] })
         end
       end
       format.json do
@@ -66,19 +30,18 @@ class BoardsController < ApplicationController
         end
       end
     end
+  rescue JSON::ParserError
+    head :bad_request
   end
 
   private
 
   def set_board
-    @board = Board.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    redirect_to games_path, alert: "Board not found"
+    @board = current_player.boards.find_by(id: params[:id])
+    redirect_to games_path, alert: "Board not found" unless @board
   end
 
-  def require_player
-    unless current_player
-      redirect_to new_player_path, alert: "Please enter your name first"
-    end
+  def screen_for(game)
+    game.in_progress? ? "games/play" : "games/waiting_for_opponent"
   end
 end

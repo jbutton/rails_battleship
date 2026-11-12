@@ -1,12 +1,14 @@
 # Rails Battleship
 
+[![CI](https://github.com/jbutton/rails_battleship/actions/workflows/ci.yml/badge.svg)](https://github.com/jbutton/rails_battleship/actions/workflows/ci.yml)
+
 A real-time, two-player Battleship game built with Rails 8 and Hotwire. Two people open the app, get matched, place their fleets, and take turns firing. Both screens update live over Action Cable, with no page reloads and no custom JavaScript framework.
 
 ## How a game works
 
 1. **Pick a name.** No accounts; the player is kept in the session.
 2. **Join a game.** Matchmaking either drops you into a waiting game or opens a new one and waits for an opponent.
-3. **Place your ships.** Once two players are matched, both get a 10×10 grid and a 10-minute timer to place the standard fleet (Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2). If the timer runs out, a background job places any remaining fleet at random.
+3. **Place your ships.** Once two players are matched, both get a 10×10 grid and a 10-minute timer to place the standard fleet (Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2). Press `R` to rotate. If the timer runs out, a background job places any remaining fleet at random.
 4. **Battle.** Players alternate shots. Each shot comes back as a miss, hit, or sink and is pushed to both players right away. The game ends when one fleet is fully sunk.
 
 ## Technical highlights
@@ -17,6 +19,7 @@ A real-time, two-player Battleship game built with Rails 8 and Hotwire. Two peop
 - **Live updates with Turbo Streams.** Phase changes (matched → placing → playing → game over) and shot results are broadcast to per-player streams, so each player gets their own view of the shared game.
 - **Timed fallback with Active Job.** `AutoPlaceShipsJob` is scheduled for the placement deadline and starts the game if both boards end up ready.
 - **Placement validation in two places.** A Stimulus controller previews valid and invalid positions on hover, and the server re-checks length, bounds, overlap, and straight-line contiguity before saving.
+- **Access checks.** Only the two players in a game can view it or fire in it, and only a board's owner can place ships on it.
 - **Rails 8 defaults.** SQLite, Solid Queue, Solid Cable, Solid Cache, Propshaft, importmap, and a Kamal deploy config. No Node, Redis, or Postgres needed.
 
 ## Tech stack
@@ -30,7 +33,7 @@ A real-time, two-player Battleship game built with Rails 8 and Hotwire. Two peop
 | Jobs       | Active Job (Solid Queue in prod)                   |
 | Database   | SQLite                                             |
 | Deploy     | Docker + Kamal                                     |
-| CI         | GitHub Actions: Brakeman, bundler-audit, importmap audit, RuboCop |
+| CI         | GitHub Actions: Minitest, RuboCop, Brakeman, bundler-audit, importmap audit |
 
 ## Domain model
 
@@ -63,6 +66,14 @@ bin/dev          # http://localhost:3000
 
 To play against yourself, open the app in two separate browser sessions (for example, a normal window and a private window), enter a different name in each, and click join in both.
 
+## Running the tests
+
+```bash
+bin/rails test
+```
+
+The suite covers the board rules (placement, shots, sinking, the hidden opponent view), each game service, the auto-placement job, and the HTTP endpoints, including access checks.
+
 ## Project layout
 
 ```
@@ -73,10 +84,11 @@ app/
   javascript/controllers/
                      ship_placement, battleship_board, timer (Stimulus)
   views/games/       one partial per game phase, swapped via Turbo Streams
+test/
+  models/ services/ jobs/ controllers/
 ```
 
 ## Known limitations
 
-- Manual placement is horizontal only. The rotate control isn't wired up yet, though auto-placement uses both orientations.
 - Players are session-based, so closing the browser loses your identity.
-- The test suite is still mostly generator scaffolding and needs real model and service tests.
+- There are no browser-level system tests yet; gameplay is covered by model, service and request tests.

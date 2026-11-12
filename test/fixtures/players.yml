@@ -1,11 +1,11 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+alice:
+  name: Alice
+  status: idle
 
-one:
-  name: MyString
-  status: 1
-  current_game_id: 1
+bob:
+  name: Bob
+  status: idle
 
-two:
-  name: MyString
-  status: 1
-  current_game_id: 1
+carol:
+  name: Carol
+  status: idle
