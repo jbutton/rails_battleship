@@ -9,9 +9,12 @@ module GamePlay
     end
 
     def call
-      validate_game_state!
-
+      # Re-read inside the transaction: the auto-place job may have placed this
+      # board and started the game after the request loaded it.
       ActiveRecord::Base.transaction do
+        game.reload
+        board.reload
+        validate_game_state!
         place_ships
         check_if_both_ready
       end
@@ -50,24 +53,7 @@ module GamePlay
     def check_if_both_ready
       return unless game.both_boards_ready?
 
-      # Both players are ready, start the game
-      game.update!(
-        state: :in_progress,
-        current_turn_player: game.player1
-      )
-
-      broadcast_game_started
-    end
-
-    def broadcast_game_started
-      [ game.player1, game.player2 ].each do |player|
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "player_#{player.id}",
-          target: "game-container",
-          partial: "games/play",
-          locals: { game: game, player: player }
-        )
-      end
+      game.start_battle!
     end
   end
 end

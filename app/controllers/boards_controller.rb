@@ -12,7 +12,7 @@ class BoardsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         if result[:success] || game.in_progress?
-          streams = [ turbo_stream.replace("game-container", partial: screen_for(game), locals: { game: game, player: current_player }) ]
+          streams = [ turbo_stream.update("game-container", partial: screen_for(game), locals: { game: game, player: current_player }) ]
           unless result[:success]
             streams << turbo_stream.update("flash-messages", partial: "shared/flash",
                                             locals: { notice: "Ships were placed automatically. Game has started!" })

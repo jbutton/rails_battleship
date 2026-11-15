@@ -180,7 +180,7 @@ export default class extends Controller {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/vnd.turbo-stream.html',
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
         },
         body: JSON.stringify({
           ships_data: JSON.stringify(this.placedShips)

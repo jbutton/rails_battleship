@@ -18,6 +18,16 @@ class FireShotServiceTest < ActiveSupport::TestCase
     assert_equal "It's not your turn", result[:error]
   end
 
+  test "a second request already in flight cannot fire again in the same turn" do
+    in_flight = Game.find(@game.id) # loaded before the first shot landed
+
+    assert fire(@game, players(:alice), 0, 0)[:success]
+    result = GamePlay::FireShotService.new(game: in_flight, shooter: players(:alice), x: 1, y: 0).call
+
+    assert_equal "It's not your turn", result[:error]
+    assert_equal 1, @game.shots.count
+  end
+
   test "cannot fire at the same cell twice" do
     fire(@game, players(:alice), 5, 5)
     fire(@game, players(:bob), 5, 5)
