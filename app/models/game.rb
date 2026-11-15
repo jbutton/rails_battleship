@@ -64,17 +64,25 @@ class Game < ApplicationRecord
 
       opponent = opponent_of(board.player)
       update!(state: :finished, winner: opponent)
-      broadcast_game_over
+      broadcast_screen("games/game_over")
       break
     end
   end
 
-  def broadcast_game_over
-    [ player1, player2 ].each do |player|
-      broadcast_replace_to "player_#{player.id}",
-                           target: "game-container",
-                           partial: "games/game_over",
-                           locals: { game: self, player: player }
+  def start_battle!
+    update!(state: :in_progress, current_turn_player: player1)
+    broadcast_screen("games/play")
+  end
+
+  # Re-renders each player's own view of the game inside #game-container.
+  # "update" swaps the container's contents; "replace" would drop the element
+  # itself, and every later broadcast to it would silently miss.
+  def broadcast_screen(partial)
+    [ player1, player2 ].compact.each do |player|
+      broadcast_update_to "player_#{player.id}",
+                          target: "game-container",
+                          partial: partial,
+                          locals: { game: self, player: player }
     end
   end
 

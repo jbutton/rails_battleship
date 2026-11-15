@@ -64,19 +64,7 @@ module GamePlay
       # Schedule auto-placement job
       AutoPlaceShipsJob.set(wait_until: deadline).perform_later(game.id)
 
-      # Broadcast to both players
-      broadcast_placement_phase_started(game)
-    end
-
-    def broadcast_placement_phase_started(game)
-      [ game.player1, game.player2 ].each do |player|
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "player_#{player.id}",
-          target: "game-container",
-          partial: "games/place_ships",
-          locals: { game: game, player: player }
-        )
-      end
+      game.broadcast_screen("games/place_ships")
     end
   end
 end

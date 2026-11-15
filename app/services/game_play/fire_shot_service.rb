@@ -13,9 +13,11 @@ module GamePlay
     end
 
     def call
-      validate!
-
+      # Validate inside the transaction against a fresh read, so a second
+      # request that loaded the game before this shot landed sees the new turn.
       ActiveRecord::Base.transaction do
+        game.reload
+        validate!
         process_shot
       end
 
@@ -70,19 +72,7 @@ module GamePlay
       # Switch turn if game is still in progress
       game.switch_turn! if game.in_progress?
 
-      broadcast_shot_result unless game.finished?
-    end
-
-    # Re-render each player's own view of the game (boards, turn indicator, battle log).
-    def broadcast_shot_result
-      [ game.player1, game.player2 ].each do |player|
-        Turbo::StreamsChannel.broadcast_replace_to(
-          "player_#{player.id}",
-          target: "game-container",
-          partial: "games/play",
-          locals: { game: game, player: player }
-        )
-      end
+      game.broadcast_screen("games/play") unless game.finished?
     end
   end
 end
